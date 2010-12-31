@@ -15,8 +15,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "bio-gex"
   gem.homepage = "http://github.com/helios/bioruby-gex"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{bio-gex: BioRuby and Gene Expression, sef of funcitonalities for analyzing gene expression data sets}
+  gem.description = %Q{bio-gex: BioRuby and Gene Expression, sef of funcitonalities for analyzing gene expression data sets. Connect to Illumina Annotation, perform statistics analyses and plotting datasets.}
   gem.email = "ilpuccio.febo@gmail.com"
   gem.authors = ["Raoul J.P. Bonnal"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
