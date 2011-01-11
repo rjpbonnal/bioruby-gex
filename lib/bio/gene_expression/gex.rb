@@ -8,7 +8,7 @@ module Bio
     def initialize(name)
       @name = name
       @genes = nil
-      @data_sets = Hash.new #Array of HashofArrays
+      @data_sets = Statsample::Dataset.new
       @genes_description = nil
     end
 
@@ -19,9 +19,11 @@ module Bio
     def descriptions=(descriptions_list)
       @genes_descriptions=descriptions_list
     end
-
+    # data is an hash of array
     def add_dataset(data)
-      @data_sets.merge!(data)
+      data.each_pair do |data_name, data_array|
+        @data_sets[data_name]=data_array.to_scale
+      end
     end
 
     # Create a string with tab separated name, description, sample and values 
