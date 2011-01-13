@@ -1,7 +1,7 @@
 = bio-gex
 
-Description goes here.
-
+This gem handle Gene Expression analyses, MicroArrays or RtPCR.
+It uses Statsample for computational and statistical purposes.
 == Contributing to bio-gex
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
