@@ -1,46 +1,3 @@
-module Statsample
-  class Vector
-
-    # Return a new vector with values computed apply the math operation specified
-    def math(operation, *args)
-      recode do |value|
-        Math.send(operation, value, *args)
-      end
-    end
-
-    def math!(operation, *args)
-      recode! do |value|
-        Math.send(operation, value, *args)
-      end
-    end
-
-  end #Vector
-
-  class Dataset
-
-    # Return a new dataset with the math function applied over all the vectors
-    def math(operation, *args)
-      ds=dup_empty # duplicate current dataset
-      each_vector do |k,v|
-        ds[k]=v.math operation,*args
-      end
-      ds.update_valid_data
-      ds
-    end
-
-    # Modify the current dataset with the math function applied over all the vectors
-    def math!(operation, *args)
-      each_vector do |k,v|        
-          v.math! operation, *args
-      end
-      update_valid_data
-      self
-    end
-
-  end #Dataset
-end #Statsample
-
-
 
 module Bio
   class Gex
@@ -70,6 +27,26 @@ module Bio
     def descriptions=(descriptions_list)
       @genes_descriptions=descriptions_list
     end
+
+    # Apply the block of code to all the dataset with the recode!, the dataset is modified
+    def recode!(field, &block )
+      dataset.recode!(field, &block)
+      self
+    end
+
+    # Return a new dataset with the true cases 
+    # Apply the block of code to all the dataset with the recode!, the dataset is modified
+    def filter(&block )
+      dataset.filter(&block)
+    end
+    
+    # Return a new dataset with the true cases for a specific field
+    # Apply the block of code to all the dataset with the recode!, the dataset is modified
+    def filter(field, &block )
+      dataset.filter(field, &block)
+    end
+    
+    
     # Return the newly created dataset
     # data is an hash of array
     def add_dataset(hash_data)      
@@ -100,6 +77,14 @@ module Bio
     # Return the names tags used in the dataset (Satsample::Datasets)
     def samples
       dataset.fields
+    end
+    
+    def differential_expression
+      # data here, must be filtered and inserted as with a valid p-value
+      # I expect to have a not, valid with nil
+      # log2 all samples
+      # mean centering, do not consider nil values in computation
+      # plotting heat-map
     end
     
 
