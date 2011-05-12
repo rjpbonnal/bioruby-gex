@@ -14,4 +14,8 @@ group :development do
   gem "jeweler", "~> 1.5.2"
   gem "rcov", ">= 0"
   gem "bio", ">= 1.4.1"
+  gem "rspec"
+  gem 'simplecov', '>= 0.4.0', :require => false, :group => :test
+  gem "statsample"
+  gem "statistics2"
 end
