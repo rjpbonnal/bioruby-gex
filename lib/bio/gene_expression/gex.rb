@@ -5,7 +5,7 @@ module Bio
     attr_accessor :adapter, :source #adapter is a symbol Bio::Gex::Adapter.ROUTE, source is for instance a path to file
     attr_accessor :genes, :genes_descriptions, :math_fields #Array
     attr_accessor :dataset #Statsample::Dataset
-    attr_reader :indexes
+    attr_reader :indexes, :index_fields
 
     # name, {genes: val,data_set:val, genes_descriptions: val, adapter:(Cufflinks_Quantification,PlainText,Csv,Tab,...), filename:...}
     def initialize(name, options=Hash.new)
@@ -18,6 +18,7 @@ module Bio
       @dataset = options[:dataset] || (options[:adapter] && options[:source] && @adapter_handler.read(options[:adapter], options[:source])) || Statsample::Dataset.new
       @dataset.name = name
       @genes_descriptions = options[:genes_descriptions]
+      @index_fields = Array.new  
       @indexes = set_indexes(options[:indexes]) #this field is use to make an access by row to the dataset ( there will be a dictionary with key/row for each index)
       @math_fields = options[:math_fields] || (options[:adapter] && @adapter_handler.math_fields(@adapter)) || [] #fArray of ields on which every math operation will be applied, [] means all fields.
     end
@@ -32,14 +33,13 @@ module Bio
         @indexes[i].map do |idx|
           dataset.case_as_hash idx
         end.flatten
-
       elsif are_indexes?(i)
         #return an array of hashes 
         i.map do |key|
-          @indexes[i].map do |idx|
+          @indexes[key].map do |idx|
             dataset.case_as_hash  idx
           end
-        end.flattet
+        end.flatten
       else
         raise "You are trying to extract some information from the dataset but I dunno what to do with #{i}. It's not a field and there are no indexes with it."
       end
@@ -59,7 +59,10 @@ module Bio
     # Duplicate the current Gex
     # TODO: fix duplication now is wrong.
     def dup
-      Gex.new(name, genes:genes.dup, genes_descriptions:genes_descriptions.dup, dataset:dataset.dup, adapter:adapter, source:source)
+      Gex.new(name, genes:dup_attribute(genes), description:dup_attribute(description),
+              genes_descriptions:dup_attribute(genes_descriptions), indexes:dup_attribute(indexes),
+              index_fields:dup_attribute(index_fields), adapter:adapter, source:dup_attribute(source), 
+              dataset:dup_attribute(dataset))
     end
 
     def empty?
@@ -186,13 +189,13 @@ module Bio
     def are_indexes?(param)
       if param.is_a? Array
         param.each do |key|
-          return false unless is_an_index(key)
+          return false unless is_an_index?(key)
         end
         return true
       end
     end
 
-    #indexes_list must be an array or fields
+    #indexes_list must be an array of fields
     def set_indexes(indexes_list)
       idxs = Hash.new {|h,k| h[k]=Array.new}
       unless indexes_list.nil?
@@ -201,14 +204,22 @@ module Bio
         end
         unless invalid_fields
           indexes_list = [indexes_list] if indexes_list.is_a? String
+          @index_fields+=indexes_list
+          @index_fields.uniq!
           @dataset.each_with_index do |row, idx|
             indexes_list.each do |key|
-              idxs[row[key]].push(idx)
+              format_row = row[key].to_s
+              idxs[format_row].push(idx)
             end
           end
         end
       end
       idxs
+    end
+    
+    #attribute is a symbol
+    def dup_attribute(attribute)
+      attribute.nil? ? nil : attribute.dup
     end
 
   end #GeneExpression
