@@ -24,25 +24,38 @@ module Bio
     end
 
     #try to be smart as possible
-    # return an array of rows if you pass multiple keys or if the key has multiple rows (not unique)
-    def[](i)
-      if is_for_dataset?(i)
-        @dataset[i]
-      elsif is_an_index?(i)
-        #check if it's an index
-        @indexes[i].map do |idx|
-          dataset.case_as_hash idx
-        end.flatten
-      elsif are_indexes?(i)
-        #return an array of hashes 
-        i.map do |key|
-          @indexes[key].map do |idx|
-            dataset.case_as_hash  idx
+    # Return an Array of rows if you pass multiple keys or if the key has multiple rows
+    # with a range is mostly an access by row, in the original dataset the rage is used to retrve the fields/columns
+    # output Array is not unique, is important to keep an association one-to-one between the input query and the output.
+    def[](*clausle)
+      clausle.map do |i|
+        if is_for_dataset?(i)
+          #TODO: case is range ? case is array?
+          if i.is_a? Integer
+            @dataset.case_as_hash(i)
+          elsif i.is_a? Range
+            i.map do |idx|
+            @dataset.case_as_hash(idx)
           end
-        end.flatten
-      else
-        raise "You are trying to extract some information from the dataset but I dunno what to do with #{i}. It's not a field and there are no indexes with it."
-      end
+          else
+            @dataset[i]
+          end
+        elsif is_an_index?(i)
+          #check if it's an index
+          @indexes[i].map do |idx|
+            dataset.case_as_hash idx
+          end#.flatten
+        elsif are_indexes?(i)
+          #return an array of hashes 
+          i.map do |key|
+            @indexes[key].map do |idx|
+              dataset.case_as_hash  idx
+            end
+          end#.flatten
+        else
+          raise "You are trying to extract some information from the dataset but I dunno what to do with #{i}. It's not a field and there are no indexes with it."
+        end
+      end.flatten
     end
 
 
@@ -60,9 +73,9 @@ module Bio
     # TODO: fix duplication now is wrong.
     def dup
       Gex.new(name, genes:dup_attribute(genes), description:dup_attribute(description),
-              genes_descriptions:dup_attribute(genes_descriptions), indexes:dup_attribute(indexes),
-              index_fields:dup_attribute(index_fields), adapter:adapter, source:dup_attribute(source), 
-              dataset:dup_attribute(dataset))
+      genes_descriptions:dup_attribute(genes_descriptions), indexes:dup_attribute(indexes),
+      index_fields:dup_attribute(index_fields), adapter:adapter, source:dup_attribute(source), 
+      dataset:dup_attribute(dataset))
     end
 
     def empty?
@@ -172,7 +185,9 @@ module Bio
 
     private
     def is_for_dataset?(param)
-      if param.is_a? Range
+      if param.is_a? Integer
+        true
+      elsif  param.is_a? Range
         true
       elsif param.is_a? Array # the element in the array are all part of the dataset's field
         (param - dataset.fields).size == 0
@@ -208,7 +223,7 @@ module Bio
           @index_fields.uniq!
           @dataset.each_with_index do |row, idx|
             indexes_list.each do |key|
-              format_row = row[key].to_s
+              format_row = row[key].nil? ? "#{key}_NA" : row[key].to_s
               idxs[format_row].push(idx)
             end
           end
@@ -216,7 +231,7 @@ module Bio
       end
       idxs
     end
-    
+
     #attribute is a symbol
     def dup_attribute(attribute)
       attribute.nil? ? nil : attribute.dup
