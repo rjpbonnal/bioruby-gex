@@ -27,6 +27,8 @@ module Bio
     # Return an Array of rows if you pass multiple keys or if the key has multiple rows
     # with a range is mostly an access by row, in the original dataset the rage is used to retrve the fields/columns
     # output Array is not unique, is important to keep an association one-to-one between the input query and the output.
+    # gex[(Range|Array|String|Integer),...]
+    # the query can be a range, an array of fields, a list of indexes or an integer
     def[](*clausle)
       clausle.map do |i|
         if is_for_dataset?(i)
@@ -181,6 +183,10 @@ module Bio
       # hash_output.merge!(dataset)
       # str_out_body=hash_output.transpose_to_str(genes.size,separator="\t", order=["NAME","Description"]+dataset.keys)
       # [str_out_header,str_out_numbers,str_out_body].join("\n")
+    end
+    
+    def method_missing(method, *args)
+      @dataset.send method, *args
     end
 
     private
